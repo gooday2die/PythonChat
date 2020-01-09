@@ -7,8 +7,8 @@ Class ClientConnectionManagement
 Class ClientDisconnectManagement
 -> 항상 클라이언트의 종료 신호를 확인하는 클래스
 
-Class Debug
--> 디버그를 관리하는 클래스
+global Debug
+-> 디버그 상태를 표시하는 글로벌 변수 True -> 디버그 ON , False -> 디버그 OFF
 
 List user_list
 -> 연결된 유저를 적는 리스트 : serverSock.accept() 에서 새로 생성된 객체를 리스트로 , 나가면 DEL 이렇게 , 들어오면 Append
