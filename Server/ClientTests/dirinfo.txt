@@ -1,1 +1,13 @@
 서버 프로그램의 작동 여부를 확인하기 위한 테스트 클라이언트들이 들어있는 디렉토리
+
+clienttest_disconnect.py : 정상 연결 후 , 엔터 누르면 연결 종료
+clienttest_ok.py : 정상 연결 확인
+clienttest_error_not_300.py : 비정상 연결 스크립트
+
+---
+
+A set of python scripts for testing server side program. 
+
+clienttest_disconnect.py : for uccessfull connection and then disconnection after hitting enter
+clienttest_ok.py : for successfull connection
+clienttest_error_not_300.py : for unsucessfull connection
