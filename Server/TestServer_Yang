@@ -1,13 +1,42 @@
+import socket
+import threading
+
+serverSock = socket(AF_INET, SOCK_STREAM)
+serverSock.bind(('', port))
+serverSock.listen(5)
+
 class ClientManagement:
     user_list = list()
 
-    def __init__(self, port = 60000):
-        self.port = port
-        self.user_list = list()
+    def __init__(self, connectionSock, port = 60000):
+        self.port = port    #접속 포트
+        self.connectionSock = connectionSock    #접속
 
-    def Client_out(self, user):
+    #connection methon,
+
+    def disconnection(self, user):
+        #클라이언트에게 보낼 메세지 생성
         sendToClient = "{} Client is disconnected.".format(user)
-        self.user_list.remove(user)
+        user_list.remove(user)
 
-        for connectionSock in self.user_list:
+        #클라이언트에 메세지 전송
+        for connectionSock in user_list:
             connectionSock.send(sendToClient.encode('utf-8'))
+    
+    def sendMessage(self):
+        #클라이언트한테 메세지 받음
+        recvData = self.connectionSock.recv(1024)
+
+        #클라이언트에게 메세지 전송
+        for sendData in self.user_list:
+            self.connectionSock.send(recvData)
+
+ClientManagement cm = ClientManagement(serverSock)
+
+#유저관리
+usercm = threading.Thread(target = cm, name = "usercm")
+usercm.start()
+
+#유저에게 메세지 전송
+smcm = threading.Thread(target = cm, name = "usercm")
+usercm.start()
