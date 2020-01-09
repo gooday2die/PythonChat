@@ -10,6 +10,12 @@ Class ClientDisconnectManagement
 global Debug
 -> 디버그 상태를 표시하는 글로벌 변수 True -> 디버그 ON , False -> 디버그 OFF
 
+def debug_on()
+-> 디버그 상태를 ON 으로 바꾸는 함수
+
+def debug_off()
+-> 디버그 상태를 OFF 로 바꾸는 
+
 List user_list
 -> 연결된 유저를 적는 리스트 : serverSock.accept() 에서 새로 생성된 객체를 리스트로 , 나가면 DEL 이렇게 , 들어오면 Append
 
