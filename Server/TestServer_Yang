@@ -9,34 +9,34 @@ class ClientManagement:
     user_list = list()
 
     def __init__(self, connectionSock, port = 60000):
-        self.port = port    #접속 포트
-        self.connectionSock = connectionSock    #접속
+        self.port = port    # 접속 포트
+        self.connectionSock = connectionSock    # 접속
 
-    #connection methon,
+    # connection methon,
 
-    def disconnection(self, user):
-        #클라이언트에게 보낼 메세지 생성
-        sendToClient = "{} Client is disconnected.".format(user)
-        user_list.remove(user)
-
-        #클라이언트에 메세지 전송
-        for connectionSock in user_list:
-            connectionSock.send(sendToClient.encode('utf-8'))
-    
     def sendMessage(self):
-        #클라이언트한테 메세지 받음
+        # 클라이언트한테 메세지 받음
         recvData = self.connectionSock.recv(1024)
 
-        #클라이언트에게 메세지 전송
-        for sendData in self.user_list:
-            self.connectionSock.send(recvData)
+        if recvData.encode('utf-8') == "!!exit()":
+            # 클라이언트에게 보낼 메세지 생성
+            sendToClient = "{} Client is disconnected.".format(user)
+            user_list.remove(user)
+
+            # 클라이언트에 메세지 전송
+            for connectionSock in user_list:
+                connectionSock.send(sendToClient.encode('utf-8'))
+        else:
+            # 클라이언트에게 메세지 전송
+            for sendData in self.user_list:
+                self.connectionSock.send(recvData)
 
 ClientManagement cm = ClientManagement(serverSock)
 
-#유저관리
+# 유저관리
 usercm = threading.Thread(target = cm, name = "usercm")
 usercm.start()
 
-#유저에게 메세지 전송
+# 유저에게 메세지 전송
 smcm = threading.Thread(target = cm, name = "usercm")
 usercm.start()
