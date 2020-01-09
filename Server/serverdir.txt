@@ -17,5 +17,7 @@ def debug_off()
 -> 디버그 상태를 OFF 로 바꾸는 
 
 List user_list
--> 연결된 유저를 적는 리스트 : serverSock.accept() 에서 새로 생성된 객체를 리스트로 , 나가면 DEL 이렇게 , 들어오면 Append
+-> 연결된 유저를 적는 딕셔너리 : serverSock.accept() 에서 새로 생성된 객체를 딕셔너리 형태로 , 나가면 DEL 이렇게 , 들어오면 Append
+-> UUID 가 key 값, 객체가 value 값으로 , 유저 ID 관리하는걸 UUID 라고 생각하면 됨
+-> 예시 {'e8571531-8bcf-4c5d-bb69-38b8666daf48': connection_socket1}
 
