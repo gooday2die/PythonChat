@@ -8,7 +8,5 @@ Class ClientDisconnectManagement
 -> 항상 클라이언트의 종료 신호를 확인하는 클래스
 
 List user_list
--> 연결된 유저를 적는 리스트 : Bool 타입
-연결 : 1 / 종료 : 0
-
+-> 연결된 유저를 적는 리스트 : serverSock.accept() 에서 새로 생성된 객체를 리스트로 , 나가면 DEL 이렇게 , 들어오면 Append
 
