@@ -1,10 +1,14 @@
 from socket import *
 from threading import Thread
+import sys
+import os
 import time
 
 
 global user_list
 user_list = list()
+
+global cm
 
 
 class ClientConnectionManagement:  # Class for Checking new connections
@@ -17,8 +21,18 @@ class ClientConnectionManagement:  # Class for Checking new connections
 
         self.port = int(port)  # Instance variable for port
         self.server_sock = socket(AF_INET, SOCK_STREAM)
-        self.server_sock.bind(('', int(port)))  # Start binding from here
-        print("[Server] Listening on port " + str(self.port))
+        self.server_sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        # Setting sockets as SOL_SOCKET and SO_REUSEADDR would allow the port
+        # 60000 to be used right after killing this process. If not used,
+        # You should wait for the OS to kill that port which takes some time.
+
+        try:
+            self.server_sock.bind(('', int(port)))  # Start binding from here
+            print("[Server] Listening on port " + str(self.port))
+
+        except OSError:
+            print("[ERROR] The port is already being used.")
+            exit()
 
     def check_new_connection(self):
         """
@@ -52,55 +66,150 @@ class ClientConnectionManagement:  # Class for Checking new connections
             print("[Server] IP " + str(self.addr) + " was not added to User")
 
     def check_disconnection(self, connection_socket_object):
-        temp_receive_data = connection_socket_object.recv(1024)
-        temp_receive_data = temp_receive_data.decode('utf-8')
+        """
+        A method for checking disconnection by connection_socket_object
+        If this connection socket object sends !!exit() which is for
+        disconnection, the server removes the corresponding connection socket
+        from user list.
 
-        if temp_receive_data == "!!exit()":
-            print("[Server] " + str(connection_socket_object.getpeername()) +
-                  " disconnected")
+        @param connection_socket_object : the connection socket object to check
+        @return none
+        """
 
-            user_list.remove(connection_socket_object)
-            connection_socket_object.close()
+        try:
+            temp_receive_data = connection_socket_object.recv(1024)
+            temp_receive_data = temp_receive_data.decode('utf-8')
+            # Receives a data from the connected socket object.
+
+            if temp_receive_data == "!!exit()":
+                # If the received data is !!exit(), server removes that object
+                print("[Server] " + str(connection_socket_object.getpeername())
+                      + " disconnected")
+                # connection_socket_object.getpeername() is the ip of the
+                # connected device
+
+                user_list.remove(connection_socket_object)
+                # removes that connection socket object from list
+                # connection_socket_object.close()
+                # closes that socket connection from server
+
+        except:
+            # I do know that this is a really bad expression, however
+            # there seems to be a lot of exceptions that can be made in the
+            # try expression up above. So I have decided to ignore any
+            # exceptions for this.
+            pass
 
     def check_disconnection_thread(self):
+        """
+        A method for checking multiple disconnections at once by using
+        multithreading. This method automatically scans all the connected
+        sockets and checks if some object is disconnected
+
+        @param none
+        @return none
+        """
+
         for connection_socket_object in user_list:
-            Thread(target = self.check_disconnection,
-                   args = (connection_socket_object,)).start()
+            # Repeats for all the instances in user_list
+            Thread(target=self.check_disconnection,
+                   args=(connection_socket_object,)).start()
+            # When using Thread function, the args must be in args = (arg,)
+            # format. Otherwise, it would not work at all.
 
 
-def print_user_list_loop():
-    print(user_list)
+def receive_console_commands():
+    """
+    A function for receiving console commands.
+    Commands :
+    - show_user_list : shows all connected users
+    - stop : stops server
+
+    @param none
+    @return none
+    """
+    command_list = ['show_user_list', 'stop']
+    command = ''
+    command = input(command)
+
+    if command not in command_list:
+        print("[Server] Wrong command entered.")
+
+    elif command == 'show_user_list':
+        show_user_list()
+
+    elif command == 'stop':
+        stop_server()
+
+
+def show_user_list():
+    """
+    A function for printing out all the user_list.
+    Just used for development and would not be used in the future.
+
+    @param none
+    @return none
+    """
+
+    print("[Server] Total " + str(len(user_list)) + " connected users : ")
+
+    for entry in user_list:
+        print(entry.getpeername())
+
+
+def stop_server():
+    global cm
+    """
+    A function for stopping server PROPERLY.
+    Closes the server socket and exits python
+
+    @param none
+    @return none
+    """
+    print("[Server] Stopping Server...")
+    # cm.server_sock.shutdown(SHUT_RDWR)
+    # cm.server_sock.close()
+    print("[Server] Bye!")
+
+    os._exit(0)
+    # Using sys.exit does not work here because this function
+    # would be called inside a thread. So using os._exit(0) would kill this
 
 
 def thread_for_checking_connections():
-    cm = ClientConnectionManagement(60000)
+    """
+    A function which is a set of threads looping forever.
+    This function declares a ClientConnectionManagement object and
+    checks the connections. Automatically detects new connections and
+    disconnections.
+
+    @param none
+    @return none
+    """
 
     while True:
-        # Thread(target = check_new_connection_loop, args = (cm,)).start()
-        Thread(target = cm.check_new_connection).start()
-        Thread(target = cm.check_disconnection_thread).start()
-        # Thread(target = print_user_list_loop).start()
+        Thread(target=cm.check_new_connection).start()  # New connections
+        Thread(target=cm.check_disconnection_thread).start()  # Disconnection
+        # Thread(target = show_user_list_loop).start()  # For testing
         time.sleep(1)
+        # If this function does not have a delay, the socket program will
+        # exceed its limits and too many requests would be handled. So this
+        # script waits 1 second to avoid overflow in socket area.
 
 
 if __name__ == "__main__":
-
-
-    """
+    global cm
     cm = ClientConnectionManagement(60000)
 
     while True:
-        Thread(target = check_new_connection_loop, args = (cm,)).start()
-        Thread(target = print_user_list_loop).start()
-        time.sleep(1)
-    """
-    '''
-    CT1 = ClientConnectionManagement(60000)
-    CT1.check_new_connection()
-    CT1.check_new_connection()
-    '''
-    thread_for_checking_connections()
+        try:
+            Thread(target=thread_for_checking_connections).start()
+            Thread(target=receive_console_commands).start()
+            time.sleep(1)
+        except OSError:
+            pass
+        # If this function does not have a delay, the socket program will
+        # exceed its limits and too many requests would be handled. So this
+        # script waits 1 second to avoid overflow in socket area.
 
     print(user_list)
-
-    # user_list[0].send("hello world!".encode("utf-8"))
