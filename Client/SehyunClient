@@ -1,7 +1,7 @@
 import threading
 import socket
 
-class Client(threading.Threads):
+class Client:
     def __init__(self):
         self.port=int("연결할 Port 입력")
         clientSock=socket(AF_INET,SOCK_STREAM)
