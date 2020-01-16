@@ -3,7 +3,7 @@ from threading import Thread
 
 class ClientManagement(Thread):
     # user_list : Store every client, include myself
-    # user_name : Asign name each client
+    # user_name : Assign name each client
     user_list = list()
     user_name = dict()
 
