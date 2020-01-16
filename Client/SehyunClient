@@ -40,8 +40,8 @@ if __name__=="__main__":
         cl.send_get()
         while True:
             try:
-                Thread(target=send_Message).start()
-                Thread(target=get_message).start()
+                threading.Thread(target=send_Message).start()
+                threading.Thread(target=get_message).start()
                 time.sleep(1)
             except:
                 pass
