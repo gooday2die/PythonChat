@@ -44,26 +44,30 @@ class ClientConnectionManagement:  # Class for Checking new connections
         @param none
         @return none
         """
-
+        self.server_sock.settimeout(1)
         self.server_sock.listen(1)
-        self.connection_sock, self.addr = self.server_sock.accept()
 
-        print("[Server] IP " + str(self.addr) + " connected!")
+        try:
+            self.connection_sock, self.addr = self.server_sock.accept()
+            print("[Server] IP " + str(self.addr) + " connected!")
 
-        self.connection_sock.send("200".encode('utf-8'))
-        #  Send 200 for new conneciton establishment
-        self.connection_sock.settimeout(5)  # Max timeout second is 5 second
+            self.connection_sock.send("200".encode('utf-8'))
+            #  Send 200 for new conneciton establishment
+            self.connection_sock.settimeout(5)  # Max timeout second is 5 second
 
-        temp_receive_data = self.connection_sock.recv(1024).decode("utf-8")
-        #  Receives data for new connection establishment
+            temp_receive_data = self.connection_sock.recv(1024).decode("utf-8")
+            #  Receives data for new connection establishment
 
-        if temp_receive_data == '300':  # If received 300 which is OK
-            print("[Server] IP " + str(self.connection_sock.getpeername()) +
-                  " added to User List")
-            user_list.append(self.connection_sock)
+            if temp_receive_data == '300':  # If received 300 which is OK
+                print("[Server] IP " + str(self.connection_sock.getpeername()) +
+                      " added to User List")
+                user_list.append(self.connection_sock)
 
-        else:  # If 300 not received which is ERROR
-            print("[Server] IP " + str(self.addr) + " was not added to User")
+            else:  # If 300 not received which is ERROR
+                print("[Server] IP " + str(self.addr) + " was not added to User")
+
+        except:
+            pass
 
     def check_disconnection(self, connection_socket_object):
         """
