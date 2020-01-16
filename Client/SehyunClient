@@ -2,30 +2,26 @@ import threading
 import socket
 
 class Client(threading.Threads):
-    def __init__(self,IP,port):
-        '''
-        Initialized get parameters for IP,Port and then try to connect
-        to promised port and IP.
-        '''
-        self.port=int(port)
+    def __init__(self):
+        self.port=int("연결할 Port 입력")
         clientSock=socket(AF_INET,SOCK_STREAM)
         clientSock.connect((self.IP,self.port))
     
     def Connection(self):
-        '''
-        A method for Confirming Connection by receiving '200' form server class
-        and return '300' message data to Server.
-        if not received '200',try receving 200 data from server up to 3 times.
-        '''
-        Connection_Num=0
-        while (Connection_Num<4):
-            recvData=clientSock.recv(1024)
-            if (recvData.decode('utf-8')=="200"):
-                sendData='300'
-                clientSock.send(sendData.encode('utf-8'))
-                print("정상적으로 연결이 되었음")
-                break
-            Connection_Num+=1
+        recvData=clientSock.recv(1024)
+        if (recvData.decode('utf-8')=="200"):
+            sendData='300'
+            clientSock.send(sendData.encode('utf-8'))
+            print("정상적으로 연결이 되었음")
+            return true
+        else:
+            print("정상적으로 연결이 되지 않음")
+            return false
+            
+    def send_get(self):
+        self.port=int("매세지 보내고 받을 Port 새로 입력")
+        clientSock=socket(AF_INET,SOCK_STREAM)
+        clientSock.connect((self.IP,self.port))
 
     def send_Message(self):
         message=input("Input Message(quit:!!exit)")
@@ -37,16 +33,15 @@ class Client(threading.Threads):
             print()
         else:
             print("{%s}:%s" % (peer_name,recvData.decode('utf-8')))
-
-        
+            
 if __name__=="__main__":
-    while True:
-        try:
-            Thread(target=send_Message).start()
-            Thread(target=get_message).start()
-            time.sleep(1)
-        except:
-            pass
-                        
-                        
-    
+    Client cl=new Client()
+    if(cl.Connection()):
+        cl.send_get()
+        while True:
+            try:
+                Thread(target=send_Message).start()
+                Thread(target=get_message).start()
+                time.sleep(1)
+            except:
+                pass
