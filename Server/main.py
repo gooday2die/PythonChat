@@ -55,6 +55,7 @@ class ClientManagement(Thread):
             except ConnectionError:
                 ClientManagement.user_list.remove(self.__client_connectionSock)
                 print("Remove exit client")
+                break
 
             except:
                 pass
