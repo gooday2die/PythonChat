@@ -107,7 +107,7 @@ class StartNewConnections:
                 print("[Server] IP " + str(handshake_connection_sock.getpeername()) +
                       " was added to user list")
 
-                self.make_new_connection_thread(message_connection_sock)
+                self.__make_new_connection_thread(message_connection_sock)
                 print("[Server] Successful make thread!")
             else:
                 print("[Server] Wrong code returned")
@@ -116,7 +116,7 @@ class StartNewConnections:
             # print("Exception Error", ex)
             pass
 
-    def make_new_connection_thread(self, connection_sock_object):
+    def __make_new_connection_thread(self, connection_sock_object):
         print("[Server] Making new thread for " + str(connection_sock_object.getpeername()))
         ClientManagement(connection_sock_object).start()
 
@@ -126,4 +126,5 @@ if __name__ == "__main__":
     SNC = StartNewConnections(60000, 65000)
     while True:
         SNC.check_new_connections()
-        print(message_user_list)
+        for client in message_user_list:
+            print(client.getpeername())
