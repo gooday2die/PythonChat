@@ -148,20 +148,17 @@ class StartNewConnections:
             handshake_connection_sock.settimeout(5)
             temp_data = handshake_connection_sock.recv(1024).decode('utf-8')
 
-            try:
-                if temp_data == '300':
-                    self.__message_sock.settimeout(5)
-                    self.__message_sock.listen(1)
+            if temp_data == '300':
+                self.__message_sock.settimeout(5)
+                self.__message_sock.listen(1)
 
-                    message_connection_sock, message_addr = self.__message_sock.accept()
-                    self.__make_new_connection_thread(message_connection_sock)
+                message_connection_sock, message_addr = self.__message_sock.accept()
+                self.__make_new_connection_thread(message_connection_sock)
 
-                    print("[Server] Successful make thread!")
-                else:
-                    print("[Server] Wrong code returned")
-            except:
-                pass
-
+                print("[Server] Successful make thread!")
+            else:
+                print("[Server] Wrong code returned")
+                
         except Exception as ex:
             # print("Exception Error", ex)
             pass
