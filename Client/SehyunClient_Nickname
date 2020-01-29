@@ -1,0 +1,74 @@
+import threading
+from socket import *
+
+class Client:
+    def __init__(self):
+        '''
+        Initializer make two sockets for each server ports
+        this step only not include connecting.    
+        '''
+        
+        self.port1=60000
+        self.clientSock1=socket(AF_INET,SOCK_STREAM)
+
+        self.port2=65000
+        self.clientSock2=socket(AF_INET,SOCK_STREAM)
+        
+    def connection(self):
+        self.clientSock1.connect(('localhost',self.port1))
+        recvData=self.clientSock1.recv(1024)
+        if (recvData.decode('utf-8')=="200"):
+            sendData='300'
+            self.clientSock1.send(sendData.encode('utf-8'))
+            self.clientSock2.connect(('localhost',self.port2))
+        else:
+            print("Error is occured")
+
+    def input_nickname(self):
+        while True:
+            #Input Nickname during connecting to message_port
+            recvData=self.clientSock2.recv(1024).decode('utf-8')
+            print(recvData)
+            nickname=input("Input NickName : ")
+            self.clientSock2.send(nickname.encode('utf-8'))
+
+            
+            #Input 1 or yes to confirm if it is my id
+            recvData=self.clientSock2.recv(1024).decode('utf-8')
+            print(recvData)
+            confirm_nick=input("Input if it is my id")
+
+            recvData=self.clientSock2.recv(1024).decode('utf-8')
+            if (recvData==1):
+                print(self.clientSock2.recv(1024).decode('utf-8'))
+                print(self.clientSock2.recv(1024).decode('utf-8'))
+                break
+            
+            elif (recvData==0):
+                print(self.clientSock2.recv(1024).decode('utf-8'))
+                print(self.clientSock2.recv(1024).decode('utf-8'))
+                continue
+            else:
+                print(self.clientSock2.recv(1024).decode('utf-8'))
+                continue
+
+    def send_Message(self):
+        message=input("Input Message(quit:!!exit)")
+        self.clientSock2.send(message.encode('utf-8'))
+
+    def get_Message(self):
+        recvData=self.clientSock2.recv(1024)
+        print(recvData.decode('utf-8'))
+            
+if __name__=="__main__":
+    me=Client()
+    me.connection()
+    me.input_nickname()
+    
+    while True:
+        try:
+            threading.Thread(target=send_Message).start()
+            threading.Thread(target=get_message).start()
+            time.sleep(1)
+        except:
+            pass
