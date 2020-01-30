@@ -35,22 +35,24 @@ class ClientManagement(Thread):
                 # Create client nickname
                 self.__client_connectionSock.send("[Server] Make your nickname: ".encode('utf-8'))
 
-                self.__client_connectionSock.settimeout(5)
+                self.__client_connectionSock.settimeout(100)
                 user_nickname = self.__client_connectionSock.recv(1024).decode('utf-8')
-
+                
                 # Check client nickname
-                self.__client_connectionSock.send("[Server] Is {} your nickname? : 1. yes | 2. no")
+                self.__client_connectionSock.settimeout(100)
+                check_nickname = "[Server] Is " + user_nickname + " your nickname? : 1. yes | 2. no"
+                self.__client_connectionSock.send(check_nickname.encode('utf-8'))
                 clientAnswer = self.__client_connectionSock.recv(1024).decode('utf-8')
 
                 # If client send '1' or 'yes', message_user_name_dict is added a client nickname
                 if clientAnswer == '1' or clientAnswer.lower() == 'yes':
-                    user_name[self.__client_connectionSock] = user_nickname
+                    ClientManagement.user_name[self.__client_connectionSock] = user_nickname
                     self.__client_connectionSock.send("[Server] Connected!!".encode('utf-8'))
-                    self.__client_connectionSock.send("[Server] Your nickname is successfuly made")
+                    self.__client_connectionSock.send("[Server] Your nickname is successfully made".encode('utf-8'))
 
-                    message_user_list.append(message_connection_sock)
+                    ClientManagement.user_list.append(self.__client_connectionSock)
 
-                    print("[Server] IP " + str(handshake_connection_sock.getpeername()) +
+                    print("[Server] IP " + str(self.__client_connectionSock.getpeername()) +
                         " was added to user list")
                     break
 
@@ -62,12 +64,15 @@ class ClientManagement(Thread):
 
                 # If client send a wrong message, send a message to client that you send a wrong message
                 else:
-                    self.__client_connectionSock.send("[Server] Sorry, your code has been entered incorrectly. Try again")
+                    self.__client_connectionSock.send("[Server] Sorry, your code has been entered incorrectly. Try again".encode('utf-8'))
                     continue
 
             except Exception as e:
                 print("Error code : {}".format(e))
-                self.__client_connectionSock.send("[Server] Server Error")
+                try:
+                    self.__client_connectionSock.send("[Server] Server Error".encode('utf-8'))
+                except ConnectionError:
+                    break
 
         while True:
             # temp_recvData is decoded message
@@ -94,10 +99,13 @@ class ClientManagement(Thread):
                         client_object.send((user_nickname[self.__client_connectionSock] + " : " + recvData).encode('utf-8'))
             
             except ConnectionError:
-                ClientManagement.user_list.remove(self.__client_connectionSock)
-                del user_nickname[self.__client_connectionSock]
-                print("[Server] Remove exit client")
-                break
+                try:
+                    ClientManagement.user_list.remove(self.__client_connectionSock)
+                    del user_name[self.__client_connectionSock]
+                    print("[Server] Remove exit client")
+                    break
+                except:
+                    pass
 
             except:
                 pass
