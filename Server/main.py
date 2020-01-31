@@ -77,33 +77,20 @@ class ClientManagement(Thread):
                 except ConnectionError:
                     break
 
+        self.__show_command()
+
         while True:
-            # temp_recvData is decoded message
-            # recvData is encoded message
             try:
-                temp_recvData = self.__client_connectionSock.recv(1024)
-                recvData = temp_recvData.decode('utf-8')
-                if recvData == '!!exit()':
-                    # Remove clientsock
-                    # Lock.acquire()
-                    ClientManagement.user_list.remove(self.__client_connectionSock)
-                    del ClientManagement.user_name[self.__client_connectionSock]
-                    # Lock.release()
-
-                    # sendData is message for another client
-                    sendData = "{} is disconnected.".format(self.__client_connectionSock)
-
-                    # Check in server
-                    print("[Server] ", sendData)
-                    # Send massage for every client
-                    for client_object in ClientManagement.user_list:
-                        client_object.send(sendData.encode('utf-8'))
-                    break
+                # temp_recvData is decoded message
+                # recvData is encoded message
+                # temp_recvData is check command string
+                recvData = self.__client_connectionSock.recv(1024).decode('utf-8')
+                temp_recvData = list(recvData)
+                if temp_recvData[0] == '/':
+                    if self.__check_command(recvData) == -1:
+                        break
                 else:
-                    print("before")
                     message = ClientManagement.user_name.get(self.__client_connectionSock) + " : " + recvData
-                    print("After")
-                    print(type(message))
                     print('[Server]', message)
                     encode_message = message.encode('utf-8')
                     for client_object in ClientManagement.user_list:
@@ -123,6 +110,67 @@ class ClientManagement(Thread):
             except Exception as e:
                 print(e)
                 pass
+
+    # Show command list to client
+    def __show_command(self):
+        # command_msg : send a message to client
+        command_msg = '\n================ COMMAND LIST ================\n'
+
+        # f : open command.txt
+        f = open("C:/Users/wnduf/Documents/Visual_Studio_Code/Server/command.txt", 'r')
+        lines = f.readlines()
+        for commands in lines:
+            command_msg += commands + "\n"
+        f.close()
+        self.__client_connectionSock.send(command_msg.encode('utf-8'))
+    
+    # If client send a command, send a command information or run client thread
+    def __check_command(self, msg):
+        command_msg = ''
+
+        # show command list
+        if msg == '/command':
+            # print __show_command()
+            f = open("C:/Users/wnduf/Documents/Visual_Studio_Code/Server/command.txt", 'r')
+            lines = f.readlines()
+            for commands in lines:
+                command_msg += commands + "\n"
+            f.close()
+            self.__client_connectionSock.send(command_msg.encode('utf-8'))
+            return 0
+        # show userlist
+        elif msg == '/userlist':
+            command_msg += 'UserList : '
+            for user in ClientManagement.user_name.values():
+                command_msg += user + ','
+            self.__client_connectionSock.send(command_msg.encode('utf-8'))
+            return 0
+
+        # Run when client exit server
+        elif msg == '/exit':
+            # Remove clientsock
+            # Lock.acquire()
+            ClientManagement.user_list.remove(self.__client_connectionSock)
+            del ClientManagement.user_name[self.__client_connectionSock]
+            # Lock.release()
+
+            # sendData is message for another client
+            sendData = "{} is disconnected.".format(self.__client_connectionSock)
+
+            # Check in server
+            print("[Server] ", sendData)
+            # Send massage for every client
+            for client_object in ClientManagement.user_list:
+                client_object.send(sendData.encode('utf-8'))
+            return -1
+
+        # command that client send isn't exist in server command
+        else:
+            error_msg = "'{}' command is not exist.".format(msg)
+            self.__client_connectionSock.send(error_msg.encode('utf-8'))
+            return 1
+            
+        
 
 class StartNewConnections:
     def __init__(self, handshake_port, message_port):
