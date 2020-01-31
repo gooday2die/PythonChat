@@ -1,5 +1,5 @@
 from socket import *
-from threading import Thread
+from threading import Thread, Lock
 import sys
 import os
 import time
@@ -30,6 +30,7 @@ class ClientManagement(Thread):
         self.__client_connectionSock = client_connectionSock
 
     def run(self):
+        # Make nickname 
         while True:
             try:
                 # Create client nickname
@@ -40,24 +41,30 @@ class ClientManagement(Thread):
                 
                 # Check client nickname
                 self.__client_connectionSock.settimeout(100)
-                check_nickname = "[Server] Is " + user_nickname + " your nickname? : 1. yes | 2. no"
+                check_nickname = "[Server] Is " + user_nickname + " your nickname? : Y | N "
                 self.__client_connectionSock.send(check_nickname.encode('utf-8'))
+
+                self.__client_connectionSock.settimeout(50)
                 clientAnswer = self.__client_connectionSock.recv(1024).decode('utf-8')
 
                 # If client send '1' or 'yes', message_user_name_dict is added a client nickname
-                if clientAnswer == '1' or clientAnswer.lower() == 'yes':
+                if clientAnswer.upper() == 'Y':
+                    Lock.acquire()
                     ClientManagement.user_name[self.__client_connectionSock] = user_nickname
+                    Lock.release()
                     self.__client_connectionSock.send("[Server] Connected!!".encode('utf-8'))
                     self.__client_connectionSock.send("[Server] Your nickname is successfully made".encode('utf-8'))
 
+                    Lock.acquire()
                     ClientManagement.user_list.append(self.__client_connectionSock)
+                    Lock.release()
 
                     print("[Server] IP " + str(self.__client_connectionSock.getpeername()) +
                         " was added to user list")
                     break
 
                 # If client send '2' or 'no', send a messgae to client
-                elif clientAnswer == '2' or clientAnswer.lower() == 'no':
+                elif clientAnswer.upper() == 'N':
                     self.__client_connectionSock.send("[Server] Nickname didn't match".encode('utf-8'))
                     self.__client_connectionSock.send("[Server] Try again".encode('utf-8'))
                     continue
@@ -82,8 +89,11 @@ class ClientManagement(Thread):
                 recvData = temp_recvData.decode('utf-8')
                 if recvData == '!!exit()':
                     # Remove clientsock
+                    Lock.acquire()
                     ClientManagement.user_list.remove(self.__client_connectionSock)
                     del user_nickname[self.__client_connectionSock]
+                    Lock.release()
+                    
                     # sendData is message for another client
                     sendData = "{} is disconnected.".format(self.__client_connectionSock)
 
@@ -94,15 +104,18 @@ class ClientManagement(Thread):
                         client_object.send(sendData.encode('utf-8'))
                     break
                 else:
-                    print(user_nickname[self.__client_connectionSock], " :", recvData)
+                    message = user_nickname[self.__client_connectionSock] + " : " + recvData
+                    print('[Server]' + message)
                     for client_object in ClientManagement.user_list:
-                        client_object.send((user_nickname[self.__client_connectionSock] + " : " + recvData).encode('utf-8'))
+                        client_object.send(message.encode('utf-8'))
             
             except ConnectionError:
                 try:
+                    Lock.acquire()
                     ClientManagement.user_list.remove(self.__client_connectionSock)
                     del user_name[self.__client_connectionSock]
-                    print("[Server] Remove exit client")
+                    Lock.release()
+                    print("[Server] Remove {} client".format(self.__client_connectionSock))
                     break
                 except:
                     pass
@@ -181,8 +194,13 @@ if __name__ == "__main__":
     SNC = StartNewConnections(60000, 65000)
     while True:
         SNC.check_new_connections()
-        print(message_user_list)
-        '''
+        # print(message_user_list)
+
+        print("[Server] User list : ", end = "")
         for client in message_user_list:
-            print(client.getpeername())
-        '''
+            print(client.getpeername(), end = ", ")
+        print("\n")
+        print("[Server] User nickname : ", end = "")
+        for client in message_user_list:
+            print(client.getpeername(), ":", message_user_name_dict[client], end = ", ")
+        print("\n")
