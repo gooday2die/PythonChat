@@ -5,14 +5,10 @@ import os
 import time
 
 
-
 """
-
 1.60000 connection handshake
 2.65000 message connection object create
 3.make thread using that connection object as parameter
-
-
 """
 global message_user_list
 global message_user_name_dict
@@ -41,7 +37,7 @@ class ClientManagement(Thread):
                 
                 # Check client nickname
                 self.__client_connectionSock.settimeout(100)
-                check_nickname = "[Server] Is " + user_nickname + " your nickname? : Y | N "
+                check_nickname = "[Server] Is " + user_nickname + " your nickname? : Y | N : "
                 self.__client_connectionSock.send(check_nickname.encode('utf-8'))
 
                 self.__client_connectionSock.settimeout(50)
@@ -49,15 +45,15 @@ class ClientManagement(Thread):
 
                 # If client send '1' or 'yes', message_user_name_dict is added a client nickname
                 if clientAnswer.upper() == 'Y':
-                    Lock.acquire()
+                    # Lock.acquire()
                     ClientManagement.user_name[self.__client_connectionSock] = user_nickname
-                    Lock.release()
+                    # Lock.release()
                     self.__client_connectionSock.send("[Server] Connected!!".encode('utf-8'))
                     self.__client_connectionSock.send("[Server] Your nickname is successfully made".encode('utf-8'))
 
-                    Lock.acquire()
+                    # Lock.acquire()
                     ClientManagement.user_list.append(self.__client_connectionSock)
-                    Lock.release()
+                    # Lock.release()
 
                     print("[Server] IP " + str(self.__client_connectionSock.getpeername()) +
                         " was added to user list")
@@ -89,38 +85,43 @@ class ClientManagement(Thread):
                 recvData = temp_recvData.decode('utf-8')
                 if recvData == '!!exit()':
                     # Remove clientsock
-                    Lock.acquire()
+                    # Lock.acquire()
                     ClientManagement.user_list.remove(self.__client_connectionSock)
-                    del user_nickname[self.__client_connectionSock]
-                    Lock.release()
-                    
+                    del ClientManagement.user_name[self.__client_connectionSock]
+                    # Lock.release()
+
                     # sendData is message for another client
                     sendData = "{} is disconnected.".format(self.__client_connectionSock)
 
                     # Check in server
-                    print("[Server] " + sendData)
+                    print("[Server] ", sendData)
                     # Send massage for every client
                     for client_object in ClientManagement.user_list:
                         client_object.send(sendData.encode('utf-8'))
                     break
                 else:
-                    message = user_nickname[self.__client_connectionSock] + " : " + recvData
-                    print('[Server]' + message)
+                    print("before")
+                    message = ClientManagement.user_name.get(self.__client_connectionSock) + " : " + recvData
+                    print("After")
+                    print(type(message))
+                    print('[Server]', message)
+                    encode_message = message.encode('utf-8')
                     for client_object in ClientManagement.user_list:
-                        client_object.send(message.encode('utf-8'))
+                        client_object.send(encode_message)
             
             except ConnectionError:
                 try:
-                    Lock.acquire()
+                    # Lock.acquire()
                     ClientManagement.user_list.remove(self.__client_connectionSock)
                     del user_name[self.__client_connectionSock]
-                    Lock.release()
+                    # Lock.release()
                     print("[Server] Remove {} client".format(self.__client_connectionSock))
                     break
                 except:
                     pass
 
-            except:
+            except Exception as e:
+                print(e)
                 pass
 
 class StartNewConnections:
